@@ -208,9 +208,9 @@ async function syncToSupabase(){
         'Prefer':'return=minimal'
       },
       body:JSON.stringify(pending.map(e=>({
-        datum:e.datum, zeit:e.zeit, taetigkeit:e.taetigkeit,
-        produktstufe:e.stufe, produkt:e.produkt,
-        menge:String(e.menge), einheit:e.einheit
+        "Timestamp":e.timestamp, "Datum":e.datum, "Uhrzeit":e.zeit,
+        "Tätigkeit":e.taetigkeit, "Produktstufe":e.stufe,
+        "Produkt":e.produkt, "Menge":String(e.menge), "Einheit":e.einheit
       })))
     });
     if(res.ok){ entries.forEach(e=>{if(!e.synced)e.synced=true;}); saveLocal(); }
