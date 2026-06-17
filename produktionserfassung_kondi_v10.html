@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produktionserfassung Konditorei</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;}
+.app{max-width:700px;margin:0 auto;padding:16px;}
+.header{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.header h1{font-size:18px;font-weight:500;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.date{font-size:13px;color:#666;}
+.liste-link{font-size:13px;color:#1D9E75;cursor:pointer;background:none;border:none;padding:0;}
+.step-indicator{display:flex;gap:8px;margin-bottom:16px;align-items:center;}
+.step-dot{width:10px;height:10px;border-radius:50%;background:#ccc;}
+.step-dot.active{background:#1D9E75;}
+.step-dot.done{background:#1D9E75;opacity:0.4;}
+.step-label{font-size:13px;color:#666;margin-left:4px;}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:20px;margin-bottom:12px;}
+.card h2{font-size:16px;font-weight:500;margin-bottom:16px;}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.choice-btn{background:#f5f5f0;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;padding:14px 16px;font-size:15px;color:#1a1a1a;cursor:pointer;text-align:left;line-height:1.3;min-height:52px;display:flex;align-items:center;}
+.choice-btn:hover{background:#ececec;}
+.choice-btn.selected{border:2px solid #1D9E75;background:#E1F5EE;color:#085041;}
+.tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:8px;background:#E1F5EE;color:#085041;margin-bottom:12px;margin-right:4px;}
+.menge-row{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.menge-inp{font-size:22px;font-weight:500;width:120px;padding:10px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a1a;}
+.time-inp{font-size:22px;font-weight:500;padding:10px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a1a;width:80px;}
+.einheit-sel{font-size:15px;padding:10px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a1a;}
+.einheit-label{font-size:15px;color:#666;}
+.btn-row{display:flex;gap:10px;margin-top:16px;}
+.submit-btn{flex:1;padding:16px;font-size:16px;font-weight:500;background:#1D9E75;color:white;border:none;border-radius:8px;cursor:pointer;}
+.submit-btn:hover{background:#0F6E56;}
+.submit-btn:disabled{background:#ccc;color:#888;cursor:not-allowed;}
+.done-btn{padding:16px 20px;font-size:15px;background:#f5f5f0;color:#1a1a1a;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;cursor:pointer;}
+.done-btn:hover{background:#ececec;}
+.back-btn{background:none;border:none;color:#666;font-size:14px;cursor:pointer;padding:4px 0;margin-bottom:8px;}
+.toast{background:#E1F5EE;color:#085041;border-radius:8px;padding:10px 14px;font-size:14px;margin-bottom:12px;}
+.list-card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.list-header{padding:14px 20px;background:#f5f5f0;border-bottom:0.5px solid rgba(0,0,0,0.12);display:flex;justify-content:space-between;align-items:center;}
+.list-header span{font-size:14px;font-weight:500;}
+.list-item{padding:12px 20px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;}
+.list-item:last-child{border-bottom:none;}
+.item-name{font-size:14px;font-weight:500;}
+.item-sub{font-size:12px;color:#666;margin-top:2px;}
+.item-menge{font-size:15px;font-weight:500;color:#1D9E75;}
+.del-btn{background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;padding:4px;}
+.del-btn:hover{color:#E24B4A;}
+.export-btn{width:100%;padding:14px;font-size:15px;font-weight:500;background:#f5f5f0;color:#1a1a1a;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;}
+.export-btn:hover{background:#ececec;}
+.neu-btn{width:100%;padding:14px;font-size:15px;background:#f5f5f0;color:#1a1a1a;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;cursor:pointer;}
+.product-search{width:100%;padding:10px 14px;font-size:15px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:12px;}
+.no-prod-note{font-size:14px;color:#666;background:#f5f5f0;border-radius:8px;padding:12px 16px;}
+.empty{text-align:center;padding:32px;color:#888;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Produktionserfassung</h1>
+    <div class="header-right">
+      <button class="liste-link" id="liste-btn" style="display:none"></button>
+      <span id="sync-status" style="font-size:12px;color:#1D9E75;"></span><span class="date" id="hdr-date"></span>
+    </div>
+  </div>
+  <div id="view-eingabe"></div>
+  <div id="view-liste" style="display:none">
+    <div class="list-card">
+      <div class="list-header">
+        <span>Erfasste Einträge</span>
+        <span id="entry-count" style="font-size:13px;color:#666"></span>
+      </div>
+      <div id="entries-list"></div>
+    </div>
+    <button class="export-btn" id="export-btn">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+      CSV exportieren (Backup)
+    </button>
+    <button class="neu-btn" id="neu-btn">+ Neue Erfassung</button>
+  </div>
+</div>
+
+<script>
+(function(){
+
+function srt(arr){ return [...arr].sort((a,b)=>a.localeCompare(b,'de')); }
+
+const TORTEN_STANDARD = srt(["Ananastorte","Bubners Sinfonie","Buttermilch-Zitronentorte","Cassis Torte","Champagner-Trüffel-Torte","Eierlikörtorte","Erdbeertorte","Himbeertorte","Holundertorte","Kirschtorte","Mandarinentorte","Nugattorte","Nusstorte","Obsttorte Erdbeer","Obsttorte Kirsch","Obsttorte Mandarine-Pfirsich","Schokoladentorte","Schwarzwälder Kirschtorte","Wintertorte","Wölkchentorte"]);
+const TORTEN_KINDER   = srt(["Einhorn Torte","Geburtstagstorte mit Zahl","Kinderzahlentorte Choco","Kinderzahlentorte White Choco","Lego Torte","Paw Patrol Kindertorte","Peppa Pig Kindertorte","Regenbogentorte Banane","Regenbogentorte Pfirsich","Schlemmertorte","Schokolinsenkuchen","Spongebob Torte"]);
+const TORTEN_FESTLICH = srt(["Blütenherz","Blütenherz – naked","Einschulungstorte ABC","Einschulungstorte Rund","Fotokuchen","Fototorte","Geschenktörtchen Erdbeer","Herztorte Nr. 1  22 cm","Herztorte Nr. 2  28 cm","Herztorte Nr. 3  60 cm","Jubiläumshoch.Kuts Nr. 3","Jubiläumshochzeit Nr. 1","Konfirm.-/Jugendweihe Nr. 1","Konfirm.-/Jugendweihe Nr. 2","Konfirm.-/Jugendweihe Nr. 3","Naked Cake","Ombré-Torte blue","Ombré-Torte red","Prosit Neujahr","Sternenschnuppe","Sternenglanz","Tannenbaum","Viel Glück","Zahlentorte Choco","Zahlentorte White Choco","Zuckertüte Blau","Zuckertüte Rosa"]);
+const TORTEN_EIS      = srt(["Baisertorte Mocca","Eiskuppeltorte Kindergeburtstag","Eistorte Erdbeer Vanille","Eistorte Schoko Vanille","Eistorte Stracciatella","Sahneeisbaisertorte"]);
+const TORTEN_SONDER   = srt(["Hochzeitstorte --> Zeit","Sondermotivtorte 20x30cm","Torte Sonderanfertigung --> Zeit"]);
+
+const SCHNITTE_FRISCH = srt(["Apfeltiramisuschnitte","Donauwelle","Erdbeerschnitte","Himbeer-Mascarponeschnitte","Holländerschnitte","Kokos-Limetten Schnitte","Mandarinenjoghurtschnitte","Obstschnitte","Pfirsich-Maracujaschnitte","Quark-Sahne-Schnitte","Waldmeisterschnitte","Winterschnitte"]);
+const SCHNITTE_TK     = srt(["Eierlikörschnitte","Erdbeer-Joghurt-Schnitte","Erdnuss-Toffee-Schnitte","Holunderschnitte","Mandarinen-Mohn-Schnitte","Mohncremeschnitte","Pfirsich-Stracciatella-Schnitte","Quark-Sanddorn-Schnitte","Schokosahneschnitte","Zitronenjoghurtschnitte"]);
+
+const DATA = {
+  "Torten einsetzen": {
+    stufen: ["Standardsortiment","Kindertorte","Festl. Anlässe","Eis- & Baisertorte","Sondertorte"],
+    produkte: {
+      "Standardsortiment": TORTEN_STANDARD,
+      "Kindertorte":        TORTEN_KINDER,
+      "Festl. Anlässe":     TORTEN_FESTLICH,
+      "Eis- & Baisertorte": TORTEN_EIS,
+      "Sondertorte":        TORTEN_SONDER
+    }
+  },
+  "Torte fertig machen": {
+    stufen: ["Standardsortiment","Kindertorte","Festl. Anlässe","Eis- & Baisertorte","Sondertorte"],
+    produkte: {
+      "Standardsortiment": TORTEN_STANDARD,
+      "Kindertorte":        TORTEN_KINDER,
+      "Festl. Anlässe":     TORTEN_FESTLICH,
+      "Eis- & Baisertorte": TORTEN_EIS,
+      "Sondertorte":        TORTEN_SONDER
+    }
+  },
+  "Schnitte einsetzen": {
+    stufen: ["Endprodukt frisch","Endprodukt TK"],
+    produkte: {"Endprodukt frisch": SCHNITTE_FRISCH, "Endprodukt TK": SCHNITTE_TK}
+  },
+  "Schnitte fertig machen": {
+    stufen: ["Endprodukt frisch","Endprodukt TK"],
+    produkte: {"Endprodukt frisch": SCHNITTE_FRISCH, "Endprodukt TK": SCHNITTE_TK}
+  },
+  "Längen einsetzen": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Frankfurterkranzlänge","Kirschlänge","Nugatlänge","Pistazienlänge","Schokolänge"])
+  },
+  "Längen fertig machen": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Frankfurterkranzlänge","Kirschlänge","Nugatlänge","Pistazienlänge","Schokolänge"])
+  },
+  "Sonstiges": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Cassis-Schoko-Herz","Doppeldecker","Himbeer-Herz","Himbeer-Vanille-Törtchen","Kirsch-Sahne-Ring","Liebesknochen","Lieblingstörtchen","Miniwindbeutel","Miniliebesknochen","Petit Fours","Schillerlocken","Windbeutel"])
+  },
+  "Vorbereitungen/ Vorprodukte": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Buttercreme","Erdbeeren putzen","geröstete Mandeln","Guss","Holländerböden schneiden","Kapseln 2x schneiden","Kapseln 3x schneiden","Kirschmasse","Leichtkrem","Pudding","Stachelbeermasse","Tortenböden schneiden"])
+  },
+  "Vorbereitung Eisherstellung": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Fruchteis","Milcheis","Schoko","Vanille"])
+  },
+  "Eisherstellung": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Bubners Sinfonie","Buttermilch Limette/Zitrone","Café Crunch","Cookies","Crema Haselnuss","Delfino","Erdbeer","Erdbeer Mascarpone","Grieß Himbeer","Haselnuss","Joghurt-Pfirsich","Kirsch-Joghurt","Mango","Pina Colada","Pistazie","Quark-Holunder","Quark-Sanddorn","Schoko","Schwarze Johannisbeere","Snickers","Stracciatella","Vanille","Zitrone"])
+  },
+  "Anschlag": {
+    stufen: [],
+    produkte: {},
+    freieProdukte: srt(["Bärentatzen aufspritzen","Biskuitboden 22cm","Biskuitboden 26 cm","Biskuitboden Schoko 26 cm","Biskuitboden/Schok 22cm","Biskuitkapsel dunkel (flach/hoch)","Biskuitkapsel hell (flach/hoch)","Donauwelle","Gitter aufspritzen","Kaffeegebäck","Lebkuchentaler aufspritzen","Liebesknochenschalen","Makronen aufspritzen","Mohnkapsel","Mürbeteigkapsel","Rouladen","Rouladen Plunder","Rührmasse","Rührböden für Kuchenecke","Tortenböden dunkel","Tortenböden hell","Windbeutelschalen","Wölkchenböden","Wölkchendeckel"])
+  },
+  "Schneidemaschine":             {stufen:[], produkte:{}},
+  "Kommissionierung":             {stufen:[], produkte:{}},
+  "Reinigen":                     {stufen:[], produkte:{}},
+  "TL-Tätigkeiten (Planung etc.)":{stufen:[], produkte:{}},
+  "Ausbildung":                   {stufen:[], produkte:{}}
+};
+
+const EINHEITEN_DEFAULT  = ["Stück","Blech/Kapsel","kg"];
+const EINHEITEN_ZEIT     = ["Stunden (hh:mm)","Stück","Blech/Kapsel","kg"];
+const EINHEITEN_EIS      = ["5l Wanne","2,5l Wanne"];
+const EINHEITEN_EISVORBEREITUNG = ["Liter"];
+const EINHEITEN_SCHNITTE = ["Blech/Kapsel","Stück","kg"];
+const EINHEITEN_LAENGEN  = ["Längen","Stück","kg"];
+const ZEIT_TAETIGKEITEN  = new Set(["Schneidemaschine","Kommissionierung","Reinigen","Ausbildung","TL-Tätigkeiten (Planung etc.)"]);
+const ZEIT_STUFEN        = new Set(["Sondertorte"]);
+
+function getEinheiten(t,s){
+  if(ZEIT_TAETIGKEITEN.has(t)||ZEIT_STUFEN.has(s)) return EINHEITEN_ZEIT;
+  if(t==='Eisherstellung') return EINHEITEN_EIS;
+  if(t==='Vorbereitung Eisherstellung') return EINHEITEN_EISVORBEREITUNG;
+  if(t==='Schnitte einsetzen'||t==='Schnitte fertig machen') return EINHEITEN_SCHNITTE;
+  if(t==='Längen einsetzen'||t==='Längen fertig machen') return EINHEITEN_LAENGEN;
+  return EINHEITEN_DEFAULT;
+}
+function defaultEinheit(t,s){ return getEinheiten(t,s)[0]; }
+function isZeitModus(e){ return e==='Stunden (hh:mm)'; }
+
+const SUPABASE_URL = 'https://yidbfoabfdhxxwzmfcrr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZGJmb2FiZmRoeHh3em1mY3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2OTkyOTIsImV4cCI6MjA5NzI3NTI5Mn0.LOWqYE1zXosqb0TKNRRLeVgMicCNH36xHi3wc1oEAm0';
+
+let st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
+let entries=JSON.parse(localStorage.getItem('kondi_entries')||'[]');
+
+function saveLocal(){ localStorage.setItem('kondi_entries',JSON.stringify(entries)); }
+
+async function syncToSupabase(){
+  const pending=entries.filter(e=>!e.synced);
+  if(!pending.length){ updateSyncStatus(); return; }
+  try{
+    const res=await fetch(SUPABASE_URL+'/rest/v1/produktionseintraege',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify(pending.map(e=>({
+        datum:e.datum, zeit:e.zeit, taetigkeit:e.taetigkeit,
+        produktstufe:e.stufe, produkt:e.produkt,
+        menge:String(e.menge), einheit:e.einheit
+      })))
+    });
+    if(res.ok){ entries.forEach(e=>{if(!e.synced)e.synced=true;}); saveLocal(); }
+  }catch(err){}
+  updateSyncStatus();
+}
+
+function updateSyncStatus(){
+  const el=document.getElementById('sync-status');
+  if(!el) return;
+  const pending=entries.filter(e=>!e.synced).length;
+  if(pending===0&&entries.length>0){ el.textContent='✓ synchronisiert'; el.style.color='#1D9E75'; }
+  else if(pending>0){ el.textContent='⚠ '+pending+' ausstehend'; el.style.color='#E07B00'; }
+  else { el.textContent=''; }
+}
+
+document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+document.getElementById('liste-btn').addEventListener('click',showListe);
+document.getElementById('export-btn').addEventListener('click',exportCSV);
+document.getElementById('neu-btn').addEventListener('click',function(){
+  st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
+  showEingabe(); render();
+});
+syncToSupabase();
+
+function showEingabe(){ document.getElementById('view-eingabe').style.display=''; document.getElementById('view-liste').style.display='none'; }
+
+function showListe(){
+  document.getElementById('view-eingabe').style.display='none';
+  document.getElementById('view-liste').style.display='';
+  document.getElementById('entry-count').textContent=entries.length+' Einträge';
+  const list=document.getElementById('entries-list');
+  if(!entries.length){ list.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
+  list.innerHTML=entries.map((e,i)=>`
+    <div class="list-item">
+      <div><div class="item-name">${e.produkt!=='–'?e.produkt:e.taetigkeit}</div>
+      <div class="item-sub">${e.taetigkeit}${e.stufe!=='–'?' · '+e.stufe:''} · ${e.zeit}</div></div>
+      <div class="item-menge">${e.menge} ${e.einheit}</div>
+      <button class="del-btn" data-i="${i}">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',function(){ entries.splice(+this.dataset.i,1); saveLocal(); showListe(); }));
+}
+
+function exportCSV(){
+  const rows=[['Timestamp','Datum','Uhrzeit','Tätigkeit','Produktstufe','Produkt','Menge','Einheit']];
+  entries.forEach(e=>rows.push([e.timestamp,e.datum,e.zeit,e.taetigkeit,e.stufe,e.produkt,e.menge,e.einheit]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='produktion_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function stepDots(cur,tot){
+  let h='';
+  for(let i=1;i<=tot;i++) h+=`<div class="step-dot${i<cur?' done':i===cur?' active':''}"></div>`;
+  h+=`<span class="step-label">Schritt ${cur} von ${tot}</span>`;
+  return h;
+}
+
+function getProdukte(){
+  const d=DATA[st.taetigkeit];
+  if(d.freieProdukte) return d.freieProdukte;
+  if(!st.stufe) return [];
+  return d.produkte[st.stufe]||[];
+}
+
+function render(){
+  const wrap=document.getElementById('view-eingabe');
+  const sf=st.taetigkeit?DATA[st.taetigkeit].stufen:[];
+  const tot=sf.length>1?3:2;
+
+  if(st.step===1){
+    wrap.innerHTML=`<div class="step-indicator">${stepDots(1,3)}</div>
+    <div class="card"><h2>Welche Tätigkeit führst du durch?</h2>
+    <div class="btn-grid" id="tgrid">${Object.keys(DATA).map(t=>`<button class="choice-btn${st.taetigkeit===t?' selected':''}" data-t="${t}">${t}</button>`).join('')}</div></div>`;
+    wrap.querySelectorAll('#tgrid .choice-btn').forEach(b=>b.addEventListener('click',function(){
+      st.taetigkeit=this.dataset.t; st.stufe=null; st.produkt=null; st.mehrfach=false;
+      st.einheit=defaultEinheit(st.taetigkeit, null); st.menge=''; st.zeit_hh=''; st.zeit_mm='';
+      const s=DATA[st.taetigkeit].stufen;
+      if(s.length===0||s.length===1){ if(s.length===1) st.stufe=s[0]; st.step=2; }
+      else { st.step=2; }
+      render();
+    }));
+
+  } else if(st.step===2&&sf.length>1){
+    wrap.innerHTML=`<div class="step-indicator">${stepDots(2,3)}</div>
+    <button class="back-btn" id="back2">← Zurück</button>
+    <div class="card"><span class="tag">${st.taetigkeit}</span>
+    <h2>Welche Produktstufe erreichst du?</h2>
+    <div class="btn-grid" id="sgrid">${sf.map(s=>`<button class="choice-btn${st.stufe===s?' selected':''}" data-s="${s}">${s}</button>`).join('')}</div></div>`;
+    document.getElementById('back2').addEventListener('click',function(){ st.step=1; render(); });
+    wrap.querySelectorAll('#sgrid .choice-btn').forEach(b=>b.addEventListener('click',function(){
+      st.stufe=this.dataset.s; st.produkt=null;
+      st.einheit=defaultEinheit(st.taetigkeit, st.stufe); st.menge=''; st.zeit_hh=''; st.zeit_mm='';
+      st.step=3; render();
+    }));
+
+  } else {
+    const curStep=sf.length>1?3:2;
+    const d=DATA[st.taetigkeit];
+    const produkte=getProdukte();
+    const keinProd=produkte.length===0&&!d.freieProdukte;
+    const tagsH=`<span class="tag">${st.taetigkeit}</span>${st.stufe?`<span class="tag">${st.stufe}</span>`:''}`;
+    const einheiten=getEinheiten(st.taetigkeit, st.stufe);
+    const einheitOpts=einheiten.map(e=>`<option${st.einheit===e?' selected':''}>${e}</option>`).join('');
+    const zeitModus=isZeitModus(st.einheit);
+
+    const mengeHTML=zeitModus
+      ?`<input class="time-inp" id="inp-hh" type="number" min="0" max="23" placeholder="hh" value="${st.zeit_hh}" style="width:80px;">
+        <span class="einheit-label">:</span>
+        <input class="time-inp" id="inp-mm" type="number" min="0" max="59" placeholder="mm" value="${st.zeit_mm}" style="width:80px;">
+        <select class="einheit-sel" id="einheit-sel">${einheitOpts}</select>`
+      :`<input class="menge-inp" id="menge-inp" type="number" min="0" step="1" placeholder="0" value="${st.menge}">
+        <select class="einheit-sel" id="einheit-sel">${einheitOpts}</select>`;
+
+    const prodH=keinProd
+      ?`<div class="no-prod-note">Kein spezifisches Produkt – bitte ${zeitModus?'Zeit':'Menge'} direkt erfassen.</div>`
+      :`<h2>Welches Produkt?</h2>
+        <input class="product-search" id="psearch" type="text" placeholder="Suchen...">
+        <div class="btn-grid" id="pgrid">${produkte.map(p=>`<button class="choice-btn${st.produkt===p?' selected':''}" data-p="${p}">${p}</button>`).join('')}</div>`;
+
+    const topRow=st.mehrfach
+      ?`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;"><div>${tagsH}</div><button class="back-btn" style="margin:0" id="wechsel">Kategorie wechseln</button></div>`
+      :`<div>${tagsH}</div>`;
+
+    wrap.innerHTML=`<div class="step-indicator">${stepDots(curStep,tot)}</div>
+    ${!st.mehrfach?'<button class="back-btn" id="backP">← Zurück</button>':''}
+    <div id="toast-area"></div>
+    <div class="card">
+      ${topRow}${prodH}
+      <div class="menge-row">${mengeHTML}</div>
+      <div class="btn-row">
+        <button class="submit-btn" id="submit-btn" disabled>Erfassen</button>
+        <button class="done-btn" id="done-btn">Fertig</button>
+      </div>
+    </div>`;
+
+    if(!st.mehrfach){
+      document.getElementById('backP').addEventListener('click',function(){
+        if(sf.length>1){ st.step=2; } else { st.step=1; st.taetigkeit=null; st.stufe=null; }
+        st.produkt=null; st.mehrfach=false; render();
+      });
+    } else {
+      document.getElementById('wechsel').addEventListener('click',function(){
+        st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false}; render();
+      });
+    }
+
+    const submitBtn=document.getElementById('submit-btn');
+    const einheitSel=document.getElementById('einheit-sel');
+
+    function checkSubmit(){
+      const zeitOk=zeitModus?(st.zeit_hh!==''&&st.zeit_mm!==''):(st.menge&&parseFloat(st.menge)>0);
+      submitBtn.disabled=!(zeitOk&&(keinProd||st.produkt));
+    }
+
+    einheitSel.addEventListener('change',function(){
+      st.einheit=this.value; st.menge=''; st.zeit_hh=''; st.zeit_mm=''; render();
+    });
+
+    if(zeitModus){
+      document.getElementById('inp-hh').addEventListener('input',function(){ st.zeit_hh=this.value; checkSubmit(); });
+      document.getElementById('inp-mm').addEventListener('input',function(){ st.zeit_mm=this.value; checkSubmit(); });
+    } else {
+      document.getElementById('menge-inp').addEventListener('input',function(){ st.menge=this.value; checkSubmit(); });
+    }
+    checkSubmit();
+
+    function bindProdBtns(){
+      wrap.querySelectorAll('#pgrid .choice-btn').forEach(b=>b.addEventListener('click',function(){
+        st.produkt=this.dataset.p;
+        wrap.querySelectorAll('#pgrid .choice-btn').forEach(x=>x.classList.remove('selected'));
+        this.classList.add('selected');
+        checkSubmit();
+      }));
+    }
+    if(!keinProd){
+      bindProdBtns();
+      document.getElementById('psearch').addEventListener('input',function(){
+        const q=this.value.toLowerCase();
+        const f=q?produkte.filter(p=>p.toLowerCase().includes(q)):produkte;
+        document.getElementById('pgrid').innerHTML=f.map(p=>`<button class="choice-btn${st.produkt===p?' selected':''}" data-p="${p}">${p}</button>`).join('');
+        bindProdBtns();
+      });
+    }
+
+    document.getElementById('done-btn').addEventListener('click',showListe);
+    submitBtn.addEventListener('click',function(){
+      const now=new Date();
+      const mengeWert=zeitModus
+        ?`${String(st.zeit_hh).padStart(2,'0')}:${String(st.zeit_mm).padStart(2,'0')}`
+        :parseFloat(document.getElementById('menge-inp').value);
+      const entry={
+        timestamp:now.toLocaleDateString('de-DE')+' '+now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+        datum:now.toLocaleDateString('de-DE'),
+        zeit:now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+        taetigkeit:st.taetigkeit, stufe:st.stufe||'–', produkt:st.produkt||'–',
+        menge:mengeWert, einheit:einheitSel.value, synced:false
+      };
+      entries.push(entry);
+      saveLocal();
+      syncToSupabase();
+      const label=st.produkt||st.taetigkeit;
+      const ta=document.getElementById('toast-area');
+      if(ta) ta.innerHTML=`<div class="toast">✓ „${label}" · ${mengeWert} ${einheitSel.value} erfasst</div>`;
+      setTimeout(()=>{ if(ta) ta.innerHTML=''; },3000);
+      const lb=document.getElementById('liste-btn');
+      lb.textContent='Liste ansehen'; lb.style.display='';
+      st.produkt=null; st.menge=''; st.zeit_hh=''; st.zeit_mm=''; st.mehrfach=true;
+      render();
+    });
+  }
+}
+
+render();
+})();
+</script>
+</body>
+</html>
