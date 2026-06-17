@@ -59,7 +59,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 <div class="app">
   <div class="header">
-    <h1>Produktionserfassung</h1>
+    <h1 id="header-title" style="cursor:pointer;">Produktionserfassung</h1>
     <div class="header-right">
       <button class="liste-link" id="liste-btn" style="display:none"></button>
       <span id="sync-status" style="font-size:12px;color:#1D9E75;"></span><span class="date" id="hdr-date"></span>
@@ -199,7 +199,7 @@ async function syncToSupabase(){
   const pending=entries.filter(e=>!e.synced);
   if(!pending.length){ updateSyncStatus(); return; }
   try{
-    const res=await fetch(SUPABASE_URL+'/rest/v1/produktionseintraege',{
+    const res=await fetch(SUPABASE_URL+'/rest/v1/Produktionseintraege',{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -235,6 +235,10 @@ document.getElementById('neu-btn').addEventListener('click',function(){
   showEingabe(); render();
 });
 syncToSupabase();
+document.getElementById('header-title').addEventListener('click',function(){
+  st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
+  showEingabe(); render();
+});
  
 function showEingabe(){ document.getElementById('view-eingabe').style.display=''; document.getElementById('view-liste').style.display='none'; }
  
@@ -416,6 +420,10 @@ function render(){
       entries.push(entry);
       saveLocal();
       syncToSupabase();
+document.getElementById('header-title').addEventListener('click',function(){
+  st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
+  showEingabe(); render();
+});
       const label=st.produkt||st.taetigkeit;
       const ta=document.getElementById('toast-area');
       if(ta) ta.innerHTML=`<div class="toast">✓ „${label}" · ${mengeWert} ${einheitSel.value} erfasst</div>`;
