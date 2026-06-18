@@ -208,7 +208,7 @@ async function syncToSupabase(){
         'Prefer':'return=minimal'
       },
       body:JSON.stringify(pending.map(e=>({
-        "Timestamp":e.timestamp, "Datum":e.datum, "Uhrzeit":e.zeit,
+        "Timestamp":e.ts_iso, "Datum":e.datum, "Uhrzeit":e.zeit,
         "Tätigkeit":e.taetigkeit, "Produktstufe":e.stufe,
         "Produkt":e.produkt, "Menge":String(e.menge), "Einheit":e.einheit
       })))
@@ -412,6 +412,7 @@ function render(){
         :parseFloat(document.getElementById('menge-inp').value);
       const entry={
         timestamp:now.toLocaleDateString('de-DE')+' '+now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+        ts_iso:now.toISOString(),
         datum:now.toLocaleDateString('de-DE'),
         zeit:now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
         taetigkeit:st.taetigkeit, stufe:st.stufe||'–', produkt:st.produkt||'–',
