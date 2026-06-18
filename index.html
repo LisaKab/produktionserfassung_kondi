@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -54,6 +55,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .product-search{width:100%;padding:10px 14px;font-size:15px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:12px;}
 .no-prod-note{font-size:14px;color:#666;background:#f5f5f0;border-radius:8px;padding:12px 16px;}
 .empty{text-align:center;padding:32px;color:#888;font-size:14px;}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.filter-btn{padding:7px 14px;font-size:13px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.2);background:#f5f5f0;color:#1a1a1a;cursor:pointer;white-space:nowrap;}
+.filter-btn.active{background:#1D9E75;color:white;border-color:#1D9E75;}
+.filter-date{font-size:13px;padding:7px 10px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a1a;}
 </style>
 </head>
 <body>
@@ -195,6 +200,21 @@ let entries=JSON.parse(localStorage.getItem('kondi_entries')||'[]');
  
 function saveLocal(){ localStorage.setItem('kondi_entries',JSON.stringify(entries)); }
  
+function cleanOldEntries(){
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 7);
+  const before = entries.length;
+  entries = entries.filter(e => {
+    const parts = e.datum.split('.');
+    if(parts.length < 3) return true;
+    const d = new Date(+parts[2], +parts[1]-1, +parts[0]);
+    return d >= cutoff;
+  });
+  if(entries.length < before) saveLocal();
+}
+ 
+let activeFilter = 'heute';
+ 
 async function syncToSupabase(){
   const pending=entries.filter(e=>!e.synced);
   if(!pending.length){ updateSyncStatus(); return; }
@@ -234,6 +254,7 @@ document.getElementById('neu-btn').addEventListener('click',function(){
   st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
   showEingabe(); render();
 });
+cleanOldEntries();
 syncToSupabase();
 document.getElementById('header-title').addEventListener('click',function(){
   st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
@@ -242,19 +263,60 @@ document.getElementById('header-title').addEventListener('click',function(){
  
 function showEingabe(){ document.getElementById('view-eingabe').style.display=''; document.getElementById('view-liste').style.display='none'; }
  
+function parseDate(datum){
+  const p = datum.split('.');
+  if(p.length < 3) return new Date(0);
+  return new Date(+p[2], +p[1]-1, +p[0]);
+}
+ 
+function filterEntries(filter, customDate){
+  const today = new Date(); today.setHours(0,0,0,0);
+  return entries.filter(e => {
+    const d = parseDate(e.datum); d.setHours(0,0,0,0);
+    if(filter==='heute') return d.getTime()===today.getTime();
+    if(filter==='gestern'){ const g=new Date(today); g.setDate(g.getDate()-1); return d.getTime()===g.getTime(); }
+    if(filter==='7tage'){ const w=new Date(today); w.setDate(w.getDate()-6); return d>=w; }
+    if(filter==='datum' && customDate){ const cd=new Date(customDate); cd.setHours(0,0,0,0); return d.getTime()===cd.getTime(); }
+    return true;
+  });
+}
+ 
 function showListe(){
   document.getElementById('view-eingabe').style.display='none';
   document.getElementById('view-liste').style.display='';
-  document.getElementById('entry-count').textContent=entries.length+' Einträge';
+ 
+  const todayStr = new Date().toISOString().slice(0,10);
+  const filterBar = `<div class="filter-bar">
+    <button class="filter-btn${activeFilter==='heute'?' active':''}" data-f="heute">Heute</button>
+    <button class="filter-btn${activeFilter==='gestern'?' active':''}" data-f="gestern">Gestern</button>
+    <button class="filter-btn${activeFilter==='7tage'?' active':''}" data-f="7tage">7 Tage</button>
+    <button class="filter-btn${activeFilter==='alle'?' active':''}" data-f="alle">Alle</button>
+    <input class="filter-date" type="date" id="filter-date-inp" max="${todayStr}" value="${activeFilter==='datum'?document.getElementById('filter-date-inp')?.value||todayStr:''}">
+  </div>`;
+ 
+  const gefiltert = filterEntries(activeFilter, document.getElementById('filter-date-inp')?.value);
   const list=document.getElementById('entries-list');
-  if(!entries.length){ list.innerHTML='<div class="empty">Noch keine Einträge.</div>'; return; }
-  list.innerHTML=entries.map((e,i)=>`
-    <div class="list-item">
-      <div><div class="item-name">${e.produkt!=='–'?e.produkt:e.taetigkeit}</div>
-      <div class="item-sub">${e.taetigkeit}${e.stufe!=='–'?' · '+e.stufe:''} · ${e.zeit}</div></div>
-      <div class="item-menge">${e.menge} ${e.einheit}</div>
-      <button class="del-btn" data-i="${i}">✕</button>
-    </div>`).join('');
+ 
+  document.querySelector('.list-header span:first-child').insertAdjacentHTML('afterend', '');
+  document.getElementById('entry-count').textContent=gefiltert.length+' Einträge';
+ 
+  list.innerHTML = filterBar + (gefiltert.length===0
+    ? '<div class="empty">Keine Einträge für diesen Zeitraum.</div>'
+    : gefiltert.map((e,i)=>{
+        const realIdx = entries.indexOf(e);
+        return `<div class="list-item">
+          <div><div class="item-name">${e.produkt!=='–'?e.produkt:e.taetigkeit}</div>
+          <div class="item-sub">${e.taetigkeit}${e.stufe!=='–'?' · '+e.stufe:''} · ${e.datum} ${e.zeit}</div></div>
+          <div class="item-menge">${e.menge} ${e.einheit}</div>
+          <button class="del-btn" data-i="${realIdx}">✕</button>
+        </div>`;
+      }).join(''));
+ 
+  list.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',function(){
+    activeFilter=this.dataset.f; showListe();
+  }));
+  const dateInp = document.getElementById('filter-date-inp');
+  if(dateInp) dateInp.addEventListener('change',function(){ activeFilter='datum'; showListe(); });
   list.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',function(){ entries.splice(+this.dataset.i,1); saveLocal(); showListe(); }));
 }
  
@@ -420,7 +482,8 @@ function render(){
       };
       entries.push(entry);
       saveLocal();
-      syncToSupabase();
+      cleanOldEntries();
+syncToSupabase();
 document.getElementById('header-title').addEventListener('click',function(){
   st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
   showEingabe(); render();
