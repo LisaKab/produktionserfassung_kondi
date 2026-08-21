@@ -85,21 +85,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="neu-btn" id="neu-btn">+ Neue Erfassung</button>
   </div>
 </div>
- 
+
 <script>
 (function(){
- 
+
 function srt(arr){ return [...arr].sort((a,b)=>a.localeCompare(b,'de')); }
- 
+
 const TORTEN_STANDARD = srt(["Ananastorte","Bubners Sinfonie","Buttermilch-Zitronentorte","Cassis Torte","Champagner-Trüffel-Torte","Eierlikörtorte","Erdbeertorte","Haustorte","Himbeertorte","Holundertorte","Igeltorte","Kirschtorte","Mandarinentorte","Nugattorte","Nusstorte","Obsttorte Erdbeer","Obsttorte Kirsch","Obsttorte Mandarine-Pfirsich","Scharfes Gelb Torte","Schoko-Baiser Torte","Schokoladentorte","Schwarzwälder Kirschtorte","Wintertorte","Wölkchentorte"]);
 const TORTEN_KINDER   = srt(["Einhorn Torte","Geburtstagstorte mit Zahl","Igeltorte","Kinderzahlentorte Choco","Kinderzahlentorte White Choco","Lego Torte","Paw Patrol Kindertorte","Peppa Pig Kindertorte","Regenbogentorte Banane","Regenbogentorte Pfirsich","Schlemmertorte","Schokolinsenkuchen","Spongebob Torte"]);
 const TORTEN_FESTLICH = srt(["Blütenherz","Blütenherz – naked","Einschulungstorte ABC","Einschulungstorte Rund","Fotokuchen","Fototorte","Geschenktörtchen Erdbeer","Herztorte Nr. 1  22 cm","Herztorte Nr. 2  28 cm","Herztorte Nr. 3  60 cm","Jubiläumshoch.Kuts Nr. 3","Jubiläumshochzeit Nr. 1","Konfirm.-/Jugendweihe Nr. 1","Konfirm.-/Jugendweihe Nr. 2","Konfirm.-/Jugendweihe Nr. 3","Naked Cake","Ombré-Torte blue","Ombré-Torte red","Prosit Neujahr","Sternenschnuppe","Sternenglanz","Tannenbaum","Viel Glück","Zahlentorte Choco","Zahlentorte White Choco","Zuckertüte Blau","Zuckertüte Rosa"]);
 const TORTEN_EIS      = srt(["Baisertorte Mocca","Eiskuppeltorte Kindergeburtstag","Eistorte Erdbeer Vanille","Eistorte Schoko Vanille","Eistorte Stracciatella","Sahneeisbaisertorte"]);
 const TORTEN_SONDER   = srt(["Hochzeitstorte --> Zeit","Sondermotivtorte 20x30cm","Torte Sonderanfertigung --> Zeit"]);
- 
+
 const SCHNITTE_FRISCH = srt(["Apfeltiramisuschnitte","Donauwelle","Erdbeerschnitte","Himbeer-Mascarponeschnitte","Holländerschnitte","Kokos-Limetten Schnitte","Mandarinenjoghurtschnitte","Obstschnitte","Pfirsich-Maracujaschnitte","Quark-Sahne-Schnitte","Waldmeisterschnitte","Winterschnitte"]);
 const SCHNITTE_TK     = srt(["Eierlikörschnitte","Erdbeer-Joghurt-Schnitte","Erdnuss-Toffee-Schnitte","Holunderschnitte","Mandarinen-Mohn-Schnitte","Mohncremeschnitte","Pfirsich-Stracciatella-Schnitte","Quark-Sanddorn-Schnitte","Schokosahneschnitte","Zitronenjoghurtschnitte"]);
- 
+
 const DATA = {
   "Torten einsetzen": {
     stufen: ["Standardsortiment","Kindertorte","Festl. Anlässe","Eis- & Baisertorte","Sondertorte"],
@@ -176,7 +176,7 @@ const DATA = {
   "TL-Tätigkeiten (Planung etc.)":{stufen:[], produkte:{}},
   "Ausbildung":                   {stufen:[], produkte:{}}
 };
- 
+
 const EINHEITEN_DEFAULT  = ["Stück","Blech/Kapsel","kg","Kessel"];
 const EINHEITEN_ZEIT     = ["Stunden (hh:mm)","Stück","Blech/Kapsel","kg"];
 const EINHEITEN_EIS      = ["5l Wanne","2,5l Wanne"];
@@ -186,7 +186,7 @@ const EINHEITEN_LAENGEN  = ["Längen","Stück","kg"];
 const ZEIT_TAETIGKEITEN  = new Set(["Schneidemaschine","Kommissionierung","Reinigen","Ausbildung","TL-Tätigkeiten (Planung etc.)"]);
 const ZEIT_PRODUKTE      = new Set(["Rohstoffe verräumen","Rohstoffe auffüllen","Zitronen auspressen","Fondant ausstechen","Tortenböden ausschneiden & einfrosten","Kuchenschicht unterstützen","Ausfrosten","B2B Brot packen","Bestellung Eisrohstoffe"]);
 const ZEIT_STUFEN        = new Set(["Sondertorte"]);
- 
+
 function getEinheiten(t,s,p){
   if(ZEIT_TAETIGKEITEN.has(t)||ZEIT_STUFEN.has(s)||(p&&ZEIT_PRODUKTE.has(p))) return EINHEITEN_ZEIT;
   if(t==='Eisherstellung') return EINHEITEN_EIS;
@@ -197,15 +197,15 @@ function getEinheiten(t,s,p){
 }
 function defaultEinheit(t,s,p){ return getEinheiten(t,s,p)[0]; }
 function isZeitModus(e){ return e==='Stunden (hh:mm)'; }
- 
+
 const SUPABASE_URL = 'https://yidbfoabfdhxxwzmfcrr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZGJmb2FiZmRoeHh3em1mY3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2OTkyOTIsImV4cCI6MjA5NzI3NTI5Mn0.LOWqYE1zXosqb0TKNRRLeVgMicCNH36xHi3wc1oEAm0';
- 
+
 let st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
 let entries=JSON.parse(localStorage.getItem('kondi_entries')||'[]');
- 
+
 function saveLocal(){ localStorage.setItem('kondi_entries',JSON.stringify(entries)); }
- 
+
 function cleanOldEntries(){
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 7);
@@ -218,9 +218,9 @@ function cleanOldEntries(){
   });
   if(entries.length < before) saveLocal();
 }
- 
+
 let activeFilter = 'heute';
- 
+
 async function syncToSupabase(){
   const pending=entries.filter(e=>!e.synced);
   if(!pending.length){ updateSyncStatus(); return; }
@@ -243,7 +243,7 @@ async function syncToSupabase(){
   }catch(err){}
   updateSyncStatus();
 }
- 
+
 function updateSyncStatus(){
   const el=document.getElementById('sync-status');
   if(!el) return;
@@ -252,7 +252,7 @@ function updateSyncStatus(){
   else if(pending>0){ el.textContent='⚠ '+pending+' ausstehend'; el.style.color='#E07B00'; }
   else { el.textContent=''; }
 }
- 
+
 document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
 document.getElementById('liste-btn').addEventListener('click',showListe);
 document.getElementById('export-btn').addEventListener('click',exportCSV);
@@ -266,15 +266,15 @@ document.getElementById('header-title').addEventListener('click',function(){
   st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false};
   showEingabe(); render();
 });
- 
+
 function showEingabe(){ document.getElementById('view-eingabe').style.display=''; document.getElementById('view-liste').style.display='none'; }
- 
+
 function parseDate(datum){
   const p = datum.split('.');
   if(p.length < 3) return new Date(0);
   return new Date(+p[2], +p[1]-1, +p[0]);
 }
- 
+
 function filterEntries(filter, customDate){
   const today = new Date(); today.setHours(0,0,0,0);
   return entries.filter(e => {
@@ -286,11 +286,11 @@ function filterEntries(filter, customDate){
     return true;
   });
 }
- 
+
 function showListe(){
   document.getElementById('view-eingabe').style.display='none';
   document.getElementById('view-liste').style.display='';
- 
+
   const todayStr = new Date().toISOString().slice(0,10);
   const filterBar = `<div class="filter-bar">
     <button class="filter-btn${activeFilter==='heute'?' active':''}" data-f="heute">Heute</button>
@@ -299,13 +299,13 @@ function showListe(){
     <button class="filter-btn${activeFilter==='alle'?' active':''}" data-f="alle">Alle</button>
     <input class="filter-date" type="date" id="filter-date-inp" max="${todayStr}" value="${activeFilter==='datum'?document.getElementById('filter-date-inp')?.value||todayStr:''}">
   </div>`;
- 
+
   const gefiltert = filterEntries(activeFilter, document.getElementById('filter-date-inp')?.value);
   const list=document.getElementById('entries-list');
- 
+
   document.querySelector('.list-header span:first-child').insertAdjacentHTML('afterend', '');
   document.getElementById('entry-count').textContent=gefiltert.length+' Einträge';
- 
+
   list.innerHTML = filterBar + (gefiltert.length===0
     ? '<div class="empty">Keine Einträge für diesen Zeitraum.</div>'
     : gefiltert.map((e,i)=>{
@@ -317,7 +317,7 @@ function showListe(){
           <button class="del-btn" data-i="${realIdx}">✕</button>
         </div>`;
       }).join(''));
- 
+
   list.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',function(){
     activeFilter=this.dataset.f; showListe();
   }));
@@ -325,7 +325,7 @@ function showListe(){
   if(dateInp) dateInp.addEventListener('change',function(){ activeFilter='datum'; showListe(); });
   list.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',function(){ entries.splice(+this.dataset.i,1); saveLocal(); showListe(); }));
 }
- 
+
 function exportCSV(){
   const rows=[['Timestamp','Datum','Uhrzeit','Tätigkeit','Produktstufe','Produkt','Menge','Einheit']];
   entries.forEach(e=>rows.push([e.timestamp,e.datum,e.zeit,e.taetigkeit,e.stufe,e.produkt,e.menge,e.einheit]));
@@ -337,14 +337,14 @@ function exportCSV(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
- 
+
 function stepDots(cur,tot){
   let h='';
   for(let i=1;i<=tot;i++) h+=`<div class="step-dot${i<cur?' done':i===cur?' active':''}"></div>`;
   h+=`<span class="step-label">Schritt ${cur} von ${tot}</span>`;
   return h;
 }
- 
+
 function getProdukte(){
   const d=DATA[st.taetigkeit];
   if(d.freieProdukte){
@@ -356,23 +356,23 @@ function getProdukte(){
   if(d.anschlagGruppen) return d.anschlagGruppen[st.stufe]||[];
   return d.produkte[st.stufe]||[];
 }
- 
+
 function isAnschlag(){
   return !!(st.taetigkeit && DATA[st.taetigkeit].anschlagGruppen);
 }
- 
+
 function getAnschlagEinheit(produkt){
   if(!isAnschlag()||!st.stufe) return null;
   const gruppe = DATA[st.taetigkeit].anschlagGruppen[st.stufe]||[];
   const pair = gruppe.find(p=>p[0]===produkt);
   return pair ? pair[1] : null;
 }
- 
+
 function render(){
   const wrap=document.getElementById('view-eingabe');
   const sf=st.taetigkeit?DATA[st.taetigkeit].stufen:[];
   const tot=sf.length>1?3:2;
- 
+
   if(st.step===1){
     wrap.innerHTML=`<div class="step-indicator">${stepDots(1,3)}</div>
     <div class="card"><h2>Welche Tätigkeit führst du durch?</h2>
@@ -385,7 +385,7 @@ function render(){
       else { st.step=2; }
       render();
     }));
- 
+
   } else if(st.step===2&&sf.length>1){
     wrap.innerHTML=`<div class="step-indicator">${stepDots(2,3)}</div>
     <button class="back-btn" id="back2">← Zurück</button>
@@ -398,7 +398,7 @@ function render(){
       st.einheit=defaultEinheit(st.taetigkeit, st.stufe); st.menge=''; st.zeit_hh=''; st.zeit_mm='';
       st.step=3; render();
     }));
- 
+
   } else {
     const curStep=sf.length>1?3:2;
     const d=DATA[st.taetigkeit];
@@ -408,7 +408,7 @@ function render(){
     const einheiten=getEinheiten(st.taetigkeit, st.stufe, st.produkt);
     const einheitOpts=einheiten.map(e=>`<option${st.einheit===e?' selected':''}>${e}</option>`).join('');
     const zeitModus=isZeitModus(st.einheit);
- 
+
     const mengeHTML=zeitModus
       ?`<input class="time-inp" id="inp-hh" type="number" min="0" max="23" placeholder="hh" value="${st.zeit_hh}" style="width:80px;">
         <span class="einheit-label">:</span>
@@ -416,7 +416,7 @@ function render(){
         <select class="einheit-sel" id="einheit-sel">${einheitOpts}</select>`
       :`<input class="menge-inp" id="menge-inp" type="number" min="0" step="1" placeholder="0" value="${st.menge}">
         <select class="einheit-sel" id="einheit-sel">${einheitOpts}</select>`;
- 
+
     const prodH=keinProd
       ?`<div class="no-prod-note">Kein spezifisches Produkt – bitte ${zeitModus?'Zeit':'Menge'} direkt erfassen.</div>`
       :`<h2>Welches Produkt?</h2>
@@ -426,11 +426,11 @@ function render(){
           const name=Array.isArray(p)?p[0]:p;
           return `<button class="choice-btn${st.produkt===name?' selected':''}" data-p="${name}">${name}</button>`;
         }).join('')}</div>`;
- 
+
     const topRow=st.mehrfach
       ?`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;"><div>${tagsH}</div><button class="back-btn" style="margin:0" id="wechsel">Kategorie wechseln</button></div>`
       :`<div>${tagsH}</div>`;
- 
+
     wrap.innerHTML=`<div class="step-indicator">${stepDots(curStep,tot)}</div>
     ${!st.mehrfach?'<button class="back-btn" id="backP">← Zurück</button>':''}
     <div id="toast-area"></div>
@@ -442,7 +442,7 @@ function render(){
         <button class="done-btn" id="done-btn">Fertig</button>
       </div>
     </div>`;
- 
+
     if(!st.mehrfach){
       document.getElementById('backP').addEventListener('click',function(){
         if(sf.length>1){ st.step=2; } else { st.step=1; st.taetigkeit=null; st.stufe=null; }
@@ -453,20 +453,20 @@ function render(){
         st={step:1,taetigkeit:null,stufe:null,produkt:null,menge:'',zeit_hh:'',zeit_mm:'',einheit:'Stück',mehrfach:false}; render();
       });
     }
- 
+
     const submitBtn=document.getElementById('submit-btn');
     const einheitSel=document.getElementById('einheit-sel');
- 
+
     function checkSubmit(){
       const curZeitModus=isZeitModus(st.einheit);
       const zeitOk=curZeitModus?(st.zeit_hh!==''&&st.zeit_mm!==''):(st.menge&&parseFloat(st.menge)>0);
       submitBtn.disabled=!(zeitOk&&(keinProd||st.produkt));
     }
- 
+
     einheitSel.addEventListener('change',function(){
       st.einheit=this.value; st.menge=''; st.zeit_hh=''; st.zeit_mm=''; render();
     });
- 
+
     if(zeitModus){
       document.getElementById('inp-hh').addEventListener('input',function(){ st.zeit_hh=this.value; checkSubmit(); });
       document.getElementById('inp-mm').addEventListener('input',function(){ st.zeit_mm=this.value; checkSubmit(); });
@@ -474,7 +474,7 @@ function render(){
       document.getElementById('menge-inp').addEventListener('input',function(){ st.menge=this.value; checkSubmit(); });
     }
     checkSubmit();
- 
+
     function bindProdBtns(){
       wrap.querySelectorAll('#pgrid .choice-btn').forEach(b=>b.addEventListener('click',function(){
         st.produkt=this.dataset.p;
@@ -520,7 +520,7 @@ function render(){
         bindProdBtns();
       });
     }
- 
+
     document.getElementById('done-btn').addEventListener('click',showListe);
     submitBtn.addEventListener('click',function(){
       const now=new Date();
@@ -553,10 +553,9 @@ function render(){
     });
   }
 }
- 
+
 render();
 })();
 </script>
 </body>
 </html>
- 
